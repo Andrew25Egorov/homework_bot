@@ -1,22 +1,10 @@
-class TokenError(Exception):
-    """Класс исключений при отсутствии токена."""
+class ApiAccessError(Exception):
+    """Класс исключений отсутствие доступа к API."""
 
     pass
 
 
-class ApiError(Exception):
-    """Класс исключений некорректный в API ответе."""
-
-    pass
-
-
-class ParseNoneStatus(Exception):
-    """Класс исключений некорректный в API ответе."""
-
-    pass
-
-
-class TelegramBot(Exception):
-    """Класс исключений некорректный в API ответе."""
+class SendMessageError(Exception):
+    """Класс исключений ошибки отправки сообщений."""
 
     pass
