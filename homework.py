@@ -32,11 +32,7 @@ HOMEWORK_VERDICTS = {
 
 def check_tokens():
     """Проверка доступности переменных окружения."""
-    tokens = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
-    if any(tokens):
-        return True
-    logger.critical('Отсутствует переменная окружения.')
-    return False
+    return all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID])
 
 
 def send_message(bot, message):
@@ -64,15 +60,14 @@ def check_response(response):
     """Проверяет ответ API на валидность."""
     if not isinstance(response, dict):
         raise TypeError('Ответ API не в формате словаря.')
-    elif 'homeworks' not in response:
-        raise KeyError('В словаре из ответа API нет ключа "homeworks"')
-    elif 'current_date' not in response:
-        raise KeyError('В словаре из ответа API нет ключа "current_date"')
+    for key in ['homeworks', 'current_date']:
+        if key not in response:
+            raise KeyError(f'В словаре из ответа API нет ключа: {key}')
     homeworks = response['homeworks']
     if not isinstance(homeworks, list):
         raise TypeError('Ответ API по ключю "homeworks" не в формате списка.')
     current_date = response['current_date']
-    if current_date is not int and 2000000000 < current_date < 1549962000:
+    if not isinstance(current_date, (int, float)):
         logger.error(f'В ответе API получено неверное значение'
                      f'current_date: ({current_date}).')
     return homeworks
@@ -80,23 +75,21 @@ def check_response(response):
 
 def parse_status(homework):
     """Извлекает информацию о конкретной домашке."""
-    key_list = ['homework_name', 'status']
-    try:
-        for i in range(len(key_list)):
-            if not homework[key_list[i]]:
-                raise KeyError(f'В ответе API нет ключа: {key_list[i]}')
-        if homework[key_list[1]] not in HOMEWORK_VERDICTS:
-            raise ValueError('Неожиданный статус домашки в ответе API.')
-    except KeyError:
-        raise KeyError('Иначе не проходит тест.')
-    verdict = HOMEWORK_VERDICTS[homework[key_list[1]]]
-    return (f'Изменился статус проверки работы "{homework[key_list[0]]}".'
+    for key in ['homework_name', 'status']:
+        if key not in homework:
+            raise KeyError(f'В ответе API нет ключа: {key}')
+    if homework['status'] not in HOMEWORK_VERDICTS:
+        raise ValueError('Неожиданный статус домашки в ответе API.')
+    verdict = HOMEWORK_VERDICTS[homework['status']]
+    homework = homework['homework_name']
+    return (f'Изменился статус проверки работы "{homework}".'
             f'{verdict}')
 
 
 def main():
     """Основная логика работы бота."""
     if not check_tokens():
+        logger.critical('Отсутствует переменная окружения.')
         sys.exit()
 
     bot = TeleBot(token=TELEGRAM_TOKEN)
@@ -133,7 +126,6 @@ if __name__ == '__main__':
         level=logging.INFO,
         format='%(asctime)s [%(levelname)s] %(funcName)s - %(message)s'
     )
-#    logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
     handler = logging.StreamHandler(stream=sys.stdout)
     formatter = logging.Formatter(
