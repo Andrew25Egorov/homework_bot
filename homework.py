@@ -119,10 +119,10 @@ def main():
 
 if __name__ == '__main__':
     logging.basicConfig(
-        datefmt="%H:%M:%S",
-        filename="main.log",
-        encoding="UTF-8",
-        filemode="a",
+        datefmt='%H:%M:%S',
+        filename='main.log',
+        encoding='UTF-8',
+        filemode='a',
         level=logging.INFO,
         format='%(asctime)s [%(levelname)s] %(funcName)s - %(message)s'
     )
